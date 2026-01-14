@@ -15,7 +15,8 @@
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import ContextMenu from '$lib/flow/ContextMenu.svelte';
 
-	import '@xyflow/svelte/dist/style.css';
+	// import '@xyflow/svelte/dist/style.css';
+	import '../../xy-theme.css';
 
 	let nodes = $state.raw([
 		{
