@@ -19,7 +19,7 @@
 		},
 		get current() {
 			return dndType;
-		},
+		}
 	});
 
 	onDestroy(() => {
