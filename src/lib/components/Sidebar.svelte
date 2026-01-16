@@ -23,8 +23,8 @@
 	<input class="search-bar" bind:value={searchBar} placeholder="Search..." />
 
 	<div class="nodes-container">
-		<h2>Basic Shapes</h2>
 		<section class="basic-shapes">
+			<h2>Basic Shapes</h2>
 			<div role="button" tabindex="0"
 				class="default-node node"
 				ondragstart={(event) => onDragStart(event, 'default')}

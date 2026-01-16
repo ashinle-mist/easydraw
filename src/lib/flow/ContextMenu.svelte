@@ -32,7 +32,7 @@
 					id: nanoid(),
 					position: {
 						x: node.position.x,
-						y: node.position.y + 50,
+						y: node.position.y + 100,
 					},
 				},
 			];

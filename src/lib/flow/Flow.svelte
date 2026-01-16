@@ -37,6 +37,7 @@
 		type: 'smoothstep'
 	};
 
+	// Drag and drop behavior
 	const onDragOver = (event: DragEvent) => {
 		event.preventDefault();
 
@@ -68,6 +69,7 @@
 		nodes = [...nodes, newNode];
 	};
 
+	// Context Menu
 	let menu: {
 		id: string;
 		top?: number;
