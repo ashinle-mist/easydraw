@@ -8,15 +8,20 @@
 		useSvelteFlow,
 		type Node,
 		type Edge,
-		type NodeEventWithPointer
+		type NodeEventWithPointer, ConnectionMode
 	} from '@xyflow/svelte';
 
 	import { useDnD } from '$lib/flow/DnDProvider.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import ContextMenu from '$lib/flow/ContextMenu.svelte';
+	import RectangleNode from '$lib/flow/nodes/RectangleNode.svelte';
 
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
+
+	const nodeTypes = {
+		RectangleNode: RectangleNode,
+	};
 
 	let nodes = $state.raw([
 		{
@@ -24,7 +29,19 @@
 			type: 'default',
 			data: { label: 'Drag nodes to the canvas' },
 			position: { x: 0, y: 0 }
-		}
+		},
+		{
+			id: '2',
+			type: 'RectangleNode',
+			data: { label: 'test' },
+			position: { x: 50, y: 50 }
+		},
+		{
+			id: '3',
+			type: 'RectangleNode',
+			data: { label: '' },
+			position: { x: 100, y: 100 }
+		},
 	]);
 
 	let edges = $state.raw([]);
@@ -112,6 +129,8 @@
 			onnodecontextmenu={handleContextMenu}
 			onpaneclick={handlePaneClick}
 			onpointerdown={handlePaneClick}
+			{nodeTypes}
+			connectionMode={ConnectionMode.Loose}
 	>
 		<Background variant={BackgroundVariant.Dots} />
 		{#if menu}

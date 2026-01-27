@@ -12,7 +12,6 @@
 		}
 
 		type.current = nodeType;
-
 		event.dataTransfer.effectAllowed = 'move';
 	};
 </script>
@@ -25,12 +24,17 @@
 	<div class="nodes-container">
 		<section class="basic-shapes">
 			<h2>Basic Shapes</h2>
-			<div role="button" tabindex="0"
-				class="default-node node"
-				ondragstart={(event) => onDragStart(event, 'default')}
-				draggable={true}
-			>
-			</div>
+			<ul>
+				<li>
+					<button type="button"
+									class="rectangle-node node"
+									aria-label="Add Rectangle"
+									draggable={true}
+									ondragstart={(event) => onDragStart(event, 'default')}
+					>
+					</button>
+				</li>
+			</ul>
 		</section>
 	</div>
 </aside>
@@ -56,7 +60,7 @@
         border-left: 0;
 
         box-shadow: 0 0 10px #808080;
-		}
+    }
 
     input {
         appearance: none;
@@ -72,25 +76,25 @@
 
     .file-name {
         font-weight: bold;
-				font-size: 1.2rem;
+        font-size: 1.2rem;
     }
 
-		.search-bar {
-				font-size: 0.8rem;
-		}
+    .search-bar {
+        font-size: 0.8rem;
+    }
 
-		h2 {
-				font-size: 1.3rem;
-		}
+    h2 {
+        font-size: 1.3rem;
+    }
 
     .nodes-container {
         display: flex;
-				flex-direction: column;
+        flex-direction: column;
     }
 
-    .node {
-				width: 80px;
-				height: 40px;
+    .rectangle-node {
+        width: 80px;
+        height: 40px;
         margin: 0.5rem;
         text-align: center;
         border: 1px solid #111;
