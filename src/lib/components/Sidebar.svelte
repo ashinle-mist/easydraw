@@ -34,6 +34,19 @@
 					>
 					</button>
 				</li>
+
+                <li>
+                    <button type="button"
+                                    class="entity-node node"
+                                    aria-label="Add Entity"
+                                    draggable={true}
+                                    ondragstart={(event) => onDragStart(event, 'EntityNode')}
+                    >
+                        <div class="preview-header">List</div>
+                        <div class="preview-body">
+                        </div>
+                    </button>
+                </li>
 			</ul>
 		</section>
 	</div>
@@ -102,5 +115,38 @@
         font-weight: 700;
         border-radius: 5px;
         cursor: grab;
+    }
+
+    .entity-node {
+        width: 100px;
+        min-height: 60px;
+        margin: 0.5rem;
+        border: 1px solid #111;
+        background: white;
+        cursor: grab;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow: hidden;
+        border-radius: 2px;
+    }
+
+    .preview-header {
+        font-size: 0.7rem;
+        font-weight: bold;
+        padding: 2px 5px;
+        border-bottom: 1px solid #111;
+        background: #f9f9f9;
+        text-align: center;
+    }
+
+    .preview-body {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 4px;
+        background-color: #cbcaca;
+        background-size: 6px 6px;
     }
 </style>

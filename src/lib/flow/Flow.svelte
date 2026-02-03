@@ -15,12 +15,14 @@
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import ContextMenu from '$lib/flow/ContextMenu.svelte';
 	import RectangleNode from '$lib/flow/nodes/RectangleNode.svelte';
+	import EntityNode from '$lib/flow/nodes/EntityNode.svelte';
 
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
 
 	const nodeTypes = {
 		RectangleNode: RectangleNode,
+		EntityNode: EntityNode
 	};
 
 	let nodes = $state.raw([
@@ -42,6 +44,19 @@
 			data: { label: '' },
 			position: { x: 100, y: 100 }
 		},
+		{
+			id: '4',
+			type: 'EntityNode',
+			position: { x:250, y:200 },
+			data: {
+				label: 'List',
+				items: [
+					{ name: 'Item 1'},
+					{ name: 'Item 2'},
+					{ name: 'Item 3'}
+				]
+			}
+		}
 	]);
 
 	let edges = $state.raw([]);
@@ -74,6 +89,13 @@
 			x: event.clientX,
 			y: event.clientY
 		});
+
+		const defaultData = type.current === 'EntityNode'
+			? {
+				label: 'New Table',
+				items: [{ name: 'id', type: 'integer' }] // Start with a PK
+			}
+			: { label: `${type.current} node` };
 
 		const newNode = {
 			id: `${Math.random()}`,
