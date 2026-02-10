@@ -19,28 +19,18 @@
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
 
+	// Define all of our custom node here
 	const nodeTypes = {
 		RectangleNode: RectangleNode,
 	};
 
+	// Define the default starting nodes in the canvas
 	let nodes = $state.raw([
 		{
 			id: '1',
 			type: 'default',
 			data: { label: 'Drag nodes to the canvas' },
 			position: { x: 0, y: 0 }
-		},
-		{
-			id: '2',
-			type: 'RectangleNode',
-			data: { label: 'test' },
-			position: { x: 50, y: 50 }
-		},
-		{
-			id: '3',
-			type: 'RectangleNode',
-			data: { label: '' },
-			position: { x: 100, y: 100 }
 		},
 	]);
 
@@ -79,7 +69,7 @@
 			id: `${Math.random()}`,
 			type: type.current,
 			position,
-			data: { label: `${type.current} node` },
+			data: { label: `` }, // Define labels in the nodes themselves
 			origin: [0.5, 0.0]
 		} satisfies Node;
 
