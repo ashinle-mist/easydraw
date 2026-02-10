@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { useDnD } from '\$lib/flow/DnDProvider.svelte';
-	import RectangleNode from '$lib/flow/nodes/RectangleNode.svelte';
 
 	const type = useDnD();
 
@@ -28,7 +27,7 @@
 			<ul>
 				<li>
 					<button type="button"
-									class="basic-node node"
+									class="rectangle-node node"
 									aria-label="Add Rectangle"
 									draggable={true}
 									ondragstart={(event) => onDragStart(event, 'RectangleNode')}
@@ -93,7 +92,27 @@
         flex-direction: column;
     }
 
-    .basic-node {
+		ul li {
+				display: inline-block;
+		}
+
+		button {
+				/*
+				Source - https://stackoverflow.com/a/45890842
+				Posted by Kevinleary.net, modified by community. See post 'Timeline' for change history
+				Retrieved 2026-02-10, License - CC BY-SA 4.0
+				*/
+
+        background: none;
+        color: inherit;
+        border: none;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+        outline: inherit;
+		}
+
+    .rectangle-node {
         width: 80px;
         height: 40px;
         margin: 0.5rem;
