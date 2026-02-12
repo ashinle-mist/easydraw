@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { useDnD } from '\$lib/flow/DnDProvider.svelte';
+	import { useDnD } from '$lib/flow/DnDProvider.svelte';
+	import NodeContainer from '$lib/components/NodeContainer.svelte';
 
 	const type = useDnD();
 
@@ -14,6 +15,10 @@
 		type.current = nodeType;
 		event.dataTransfer.effectAllowed = 'move';
 	};
+
+	const basicShapes = [
+		{label: 'Rectangle', type: 'RectangleNode'}
+	]
 </script>
 
 <aside>
@@ -21,22 +26,10 @@
 	<input class="file-name" bind:value={fileName} />
 	<input class="search-bar" bind:value={searchBar} placeholder="Search..." />
 
-	<div class="nodes-container">
-		<section class="basic-shapes">
-			<h2>Basic Shapes</h2>
-			<ul>
-				<li>
-					<button type="button"
-									class="rectangle-node node"
-									aria-label="Add Rectangle"
-									draggable={true}
-									ondragstart={(event) => onDragStart(event, 'RectangleNode')}
-					>
-					</button>
-				</li>
-			</ul>
-		</section>
-	</div>
+	<NodeContainer
+		heading="Other shapes"
+		nodes={basicShapes}
+	/>
 </aside>
 
 <style>
@@ -87,7 +80,7 @@
         font-size: 1.3rem;
     }
 
-    .nodes-container {
+    .node-container {
         display: flex;
         flex-direction: column;
     }
