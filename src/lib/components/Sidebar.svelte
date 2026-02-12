@@ -7,15 +7,6 @@
 	let fileName = $state('Untitled');
 	let searchBar = $state('');
 
-	const onDragStart = (event: DragEvent, nodeType: string) => {
-		if (!event.dataTransfer) {
-			return null;
-		}
-
-		type.current = nodeType;
-		event.dataTransfer.effectAllowed = 'move';
-	};
-
 	const basicShapes = [
 		{label: 'Rectangle', type: 'RectangleNode'}
 	]
@@ -74,46 +65,5 @@
 
     .search-bar {
         font-size: 0.8rem;
-    }
-
-    h2 {
-        font-size: 1.3rem;
-    }
-
-    .node-container {
-        display: flex;
-        flex-direction: column;
-    }
-
-		ul li {
-				display: inline-block;
-		}
-
-		button {
-				/*
-				Source - https://stackoverflow.com/a/45890842
-				Posted by Kevinleary.net, modified by community. See post 'Timeline' for change history
-				Retrieved 2026-02-10, License - CC BY-SA 4.0
-				*/
-
-        background: none;
-        color: inherit;
-        border: none;
-        padding: 0;
-        font: inherit;
-        cursor: pointer;
-        outline: inherit;
-		}
-
-    .rectangle-node {
-        width: 80px;
-        height: 40px;
-        margin: 0.5rem;
-        text-align: center;
-        border: 1px solid #111;
-        padding: 0.5rem 1rem;
-        font-weight: 700;
-        border-radius: 5px;
-        cursor: grab;
     }
 </style>
