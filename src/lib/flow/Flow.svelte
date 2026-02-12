@@ -25,7 +25,7 @@
 		EntityNode: EntityNode
 	};
 
-	let nodes = $state.raw([
+	let nodes = $state<Node[]>([
 		{
 			id: '1',
 			type: 'default',
@@ -49,11 +49,11 @@
 			type: 'EntityNode',
 			position: { x:250, y:200 },
 			data: {
-				label: 'List',
-				items: [
-					{ name: 'Item 1'},
-					{ name: 'Item 2'},
-					{ name: 'Item 3'}
+				label: 'New Table',
+				fields: [
+					{ name: 'Field', type: 'PK'},
+					{ name: 'Field', type: 'Type'},
+					{ name: 'Field', type: 'Type'}
 				]
 			}
 		}
@@ -90,20 +90,24 @@
 			y: event.clientY
 		});
 
-		const defaultData = type.current === 'EntityNode'
+		const initialData = type.current === 'EntityNode'
 			? {
 				label: 'New Table',
-				items: [{ name: 'id', type: 'integer' }] // Start with a PK
+				fields: [
+					{ name: 'Field', type: 'PK'}, // Start with a PK
+					{ name: 'Field', type: 'Type'},
+					{ name: 'Field', type: 'Type'}
+				]
 			}
-			: { label: `${type.current} node` };
+			: { label: 'New Node' };
 
-		const newNode = {
-			id: `${Math.random()}`,
+		const newNode: Node = {
+			id: crypto.randomUUID(),
 			type: type.current,
 			position,
-			data: { label: `${type.current} node` },
-			origin: [0.5, 0.0]
-		} satisfies Node;
+			data: initialData,
+			origin: [0.5, 0.0] as [number, number]
+		};
 
 		nodes = [...nodes, newNode];
 	};

@@ -1,141 +1,94 @@
 <script lang="ts">
-    import { Handle, Position, useSvelteFlow, type NodeProps } from '@xyflow/svelte';
-
-    let { id, data, isConnectable }: NodeProps = $props();
-    let { updateNodeData } = useSvelteFlow();
-
-    // Update the table name
-    function onInput(evt: Event){
-        const target = evt.target as HTMLInputElement;
-		updateNodeData(id, { label: target.value });
-    }
-
-    // Updates a specific field name based on index
-    function onFieldInput(evt: Event, index: number) {
-        const target = evt.target as HTMLInputElement;
-        const newFields = [...(data.fields as any[])];
-        newFields[index].name = target.value;
-        updateNodeData(id, { fields: newFields });
-    }
-
-    // Adds a new row to the entity
-    function addField() {
-        const currentFields = (data.fields as any[]) ?? [];
-
-        const newField = currentFields.length === 0
-            ? { name: 'id', type: 'PK' }
-            : { name: 'new_field', type: 'VARCHAR' };
-        
-        const newFields = [...currentFields, newField];
-
-        updateNodeData(id, { fields: newFields });
-    }
+    import { Handle, Position } from '@xyflow/svelte';
+    export let data;
 </script>
 
-<div class="entity-node">
-
-    <Handle type="source" position={Position.Top} {isConnectable} id="top" />
-	<Handle type="source" position={Position.Right} {isConnectable} id="right" />
-	<Handle type="source" position={Position.Bottom} {isConnectable} id="bottom" />
-	<Handle type="source" position={Position.Left} {isConnectable} id="left" />
-
-    <div class="header">
-        <input
+<div class="erd-table">
+    <div class="header" style="background: {data.color || '#cbcaca'}">
+        <input 
             type="text"
-            value={data.label ?? 'Table Name'}
-            oninput={onInput}
-            class="nodrag"
-        >
+            bind:value={data.label}
+            class="header-input"
+        />
     </div>
+    <div class="rows">
+        {#each data.fields as field, i}
+            <div class="row">
+                <Handle type="target" position={Position.Left} id="{i}-target" />
 
-    <div class="field-list">
-        {#each (data.fields as any[]) ?? [] as field, i}
-            <div class="field-row">
-                <span class="type-tag {field.type === 'PK' ? 'pk-tag' : ''}">{field.type}</span>
                 <input
                     type="text"
-                    value={field.name}
-                    oninput={(e) => onFieldInput(e, i)}
-                    class="nodrag"
-                >
+                    bind:value={field.name}
+                    class="field-input name"
+                />
+
+                <input
+                    type="text"
+                    bind:value={field.type}
+                    class="field-input type"
+                />
+
+                <Handle type="source" position={Position.Right} id="{i}-source" />
             </div>
         {/each}
     </div>
-
-    <button onclick={addField} class="nodrag add-row-btn">+</button>
 </div>
 
 <style>
-    .entity-node {
+    .erd-table {
+        min-width: 180px;
         background: white;
-        border: 1.5px solid #1a192b;
+        border: 1px solid #1a192b;
         border-radius: 4px;
-        min-width: 150px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
+        overflow: visible;
+        font-family: 'Inter', sans-serif, system-ui;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .header {
-        background: rgb(143, 141, 141);
-        padding: 6px;
-        border-bottom: 1.5px solid #1a192b;
+        padding:2px;
+        color: black;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: left;
+        border-bottom: 1px solid #1a192b;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
     }
 
-    .header input {
-        background: transparent;
-        color: white;
-        font-weight: bold;
-        text-align: center;
+    .header-input {
         width: 100%;
+        background: transparent;
         border: none;
-        outline: none;
-    }
-
-    .field-list {
-        background: white;
-    }
-
-    .field-row {
-        display: flex;
-        align-items: center;
-        padding: 4px 8px;
-        gap: 8px;
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .pk-tag {
-        color: #f59e0b;
+        color: black;
         font-weight: bold;
-    }
-
-    .type-tag {
-        font-size: 0.65rem;
-        color: #999;
-        font-family: monospace;
-        text-transform: uppercase;
-    }
-
-    .field-row input {
-        flex: 1;
-        border: none;
+        font-size: 12px;
+        padding: 4px 8px;
         outline: none;
-        font-size: 0.8rem;
-        color: #333;
     }
 
-    .add-row-btn {
-        background: #fcfcfc;
+    .row {
+        display: flex;
+        position: relative;
+        padding: 3px 6px;
+        border-bottom: 1px solid #eee;
+        font-size: 12px;
+    }
+
+    .row:last-child {
+        border-bottom: none;
+    }
+
+    .field-input {
         border: none;
-        border-top: 1px solif #f0f0f0;
-        cursor: pointer;
-        font-size: 1rem;
-        color: #bbb;
-        padding: 2px;
+        padding: 3px 4px;
+        font-size: 10px;
+        outline: none;
+        width: 50%;
     }
 
-    .add-row-btn:hover {
-        background: #f3f4f6;
-        color: #333;
+    .field-input.type {
+        border-left: 1px solid #eee;
+        color: #666;
     }
 </style>
