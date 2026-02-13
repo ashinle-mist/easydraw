@@ -6,6 +6,8 @@
 		BackgroundVariant,
 		MiniMap,
 		useSvelteFlow,
+		addEdge,
+		type Connection,
 		type Node,
 		type Edge,
 		type NodeEventWithPointer, ConnectionMode
@@ -68,6 +70,10 @@
 	const defaultEdgeOptions = {
 		type: 'smoothstep'
 	};
+
+	// const onConnect = (params: Connection) => {
+	// 	edges = addEdge(params, [...edges]);
+	// }
 
 	// Drag and drop behavior
 	const onDragOver = (event: DragEvent) => {
@@ -142,6 +148,13 @@
 	function handlePaneClick() {
 		menu = null;
 	}
+
+	// Right Sidebar when clicking the nodes
+	let selectedNode = $state<Node | null>(null);
+
+	const onNodeClick = ({ node }: {node: Node }) => {
+		selectedNode = node;
+	}
 </script>
 
 <main style="width:100vw; height:100vh;" bind:clientWidth bind:clientHeight>
@@ -157,6 +170,7 @@
 			onpointerdown={handlePaneClick}
 			{nodeTypes}
 			connectionMode={ConnectionMode.Loose}
+			onnodeclick={onNodeClick}
 	>
 		<Background variant={BackgroundVariant.Dots} />
 		{#if menu}

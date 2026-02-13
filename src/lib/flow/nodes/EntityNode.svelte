@@ -14,7 +14,7 @@
     <div class="rows">
         {#each data.fields as field, i}
             <div class="row">
-                <Handle type="target" position={Position.Left} id="{i}-target" />
+                <Handle type="target" position={Position.Left} id="target-{i}-target" />
 
                 <input
                     type="text"
@@ -28,7 +28,7 @@
                     class="field-input type"
                 />
 
-                <Handle type="source" position={Position.Right} id="{i}-source" />
+                <Handle type="source" position={Position.Right} id="source-{i}-source" />
             </div>
         {/each}
     </div>
