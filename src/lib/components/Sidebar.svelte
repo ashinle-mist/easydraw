@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { useDnD } from '$lib/flow/DnDProvider.svelte';
 	import NodeContainer from '$lib/components/NodeContainer.svelte';
-
-	const type = useDnD();
 
 	let fileName = $state('Untitled');
 	let searchBar = $state('');
 
+
+	// Array to be passed into the NodeContainer component
+	// Might move this to another file so we can just import
+	// instead of writing it here
 	const basicShapes = [
 		{label: 'Rectangle', type: 'RectangleNode'}
 	]
