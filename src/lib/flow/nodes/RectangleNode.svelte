@@ -19,10 +19,11 @@
 
 	<div class="node-text">
 		<input
-		type="text"
-		value={data.label ?? ''}
-		oninput={onInput}
-		class="nodrag"
+			type="text"
+			value={data.label ?? ''}
+			oninput={onInput}
+			class="nodrag"
+			placeholder="Type here..."
 		>
 	</div>
 </div>
@@ -36,13 +37,13 @@
         margin: 0;
         outline: none;
         text-align: center;
-				width: 100%;
+        width: 100%;
     }
 
-		.rectangle-node {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				min-height: 30px;
-		}
+    .rectangle-node {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+    }
 </style>

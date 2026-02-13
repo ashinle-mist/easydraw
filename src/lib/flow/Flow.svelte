@@ -22,18 +22,25 @@
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
 
+	// Define all of our custom node here
 	const nodeTypes = {
 		RectangleNode: RectangleNode,
 		EntityNode: EntityNode
 	};
 
+<<<<<<< HEAD
 	let nodes = $state<Node[]>([
+=======
+	// Define the default starting nodes in the canvas
+	let nodes = $state.raw([
+>>>>>>> 4143f89087cd66c5163cb59df8828a4e802ca73c
 		{
 			id: '1',
 			type: 'default',
 			data: { label: 'Drag nodes to the canvas' },
 			position: { x: 0, y: 0 }
 		},
+<<<<<<< HEAD
 		{
 			id: '2',
 			type: 'RectangleNode',
@@ -59,6 +66,8 @@
 				]
 			}
 		}
+=======
+>>>>>>> 4143f89087cd66c5163cb59df8828a4e802ca73c
 	]);
 
 	let edges = $state.raw([]);
@@ -111,9 +120,15 @@
 			id: crypto.randomUUID(),
 			type: type.current,
 			position,
+<<<<<<< HEAD
 			data: initialData,
 			origin: [0.5, 0.0] as [number, number]
 		};
+=======
+			data: { label: `` }, // Define labels in the nodes themselves
+			origin: [0.5, 0.0]
+		} satisfies Node;
+>>>>>>> 4143f89087cd66c5163cb59df8828a4e802ca73c
 
 		nodes = [...nodes, newNode];
 	};

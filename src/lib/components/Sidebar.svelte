@@ -1,19 +1,15 @@
 <script lang="ts">
-	import { useDnD } from '\$lib/flow/DnDProvider.svelte';
-
-	const type = useDnD();
+	import NodeContainer from '$lib/components/NodeContainer.svelte';
 
 	let fileName = $state('Untitled');
 	let searchBar = $state('');
 
-	const onDragStart = (event: DragEvent, nodeType: string) => {
-		if (!event.dataTransfer) {
-			return null;
-		}
-
-		type.current = nodeType;
-		event.dataTransfer.effectAllowed = 'move';
-	};
+	// Array to be passed into the NodeContainer component
+	// Might move this to another file so we can just import
+	// instead of writing it here
+	const basicShapes = [
+		{label: 'Rectangle', type: 'RectangleNode'}
+	]
 </script>
 
 <aside>
@@ -21,6 +17,7 @@
 	<input class="file-name" bind:value={fileName} />
 	<input class="search-bar" bind:value={searchBar} placeholder="Search..." />
 
+<<<<<<< HEAD
 	<div class="nodes-container">
 		<section class="basic-shapes">
 			<h2>Basic Shapes</h2>
@@ -50,6 +47,12 @@
 			</ul>
 		</section>
 	</div>
+=======
+	<NodeContainer
+		heading="Basic Shapes"
+		nodes={basicShapes}
+	/>
+>>>>>>> 4143f89087cd66c5163cb59df8828a4e802ca73c
 </aside>
 
 <style>
@@ -95,6 +98,7 @@
     .search-bar {
         font-size: 0.8rem;
     }
+<<<<<<< HEAD
 
     h2 {
         font-size: 1.3rem;
@@ -150,3 +154,6 @@
         background-size: 6px 6px;
     }
 </style>
+=======
+</style>
+>>>>>>> 4143f89087cd66c5163cb59df8828a4e802ca73c
