@@ -28,7 +28,7 @@
 	let nodes = $state.raw([
 		{
 			id: '1',
-			type: 'default',
+			type: 'RectangleNode',
 			data: { label: 'Drag nodes to the canvas' },
 			position: { x: 0, y: 0 }
 		},
