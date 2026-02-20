@@ -15,6 +15,7 @@
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import ContextMenu from '$lib/flow/ContextMenu.svelte';
 	import RectangleNode from '$lib/flow/nodes/RectangleNode.svelte';
+	import EntityNode from '$lib/flow/nodes/EntityNode.svelte';
 
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
@@ -22,6 +23,7 @@
 	// Define all of our custom node here
 	const nodeTypes = {
 		RectangleNode: RectangleNode,
+		EntityNode: EntityNode,
 	};
 
 	// Define the default starting nodes in the canvas
@@ -32,6 +34,19 @@
 			data: { label: 'Drag nodes to the canvas' },
 			position: { x: 0, y: 0 }
 		},
+		{
+			id: '2',
+			type: 'EntityNode',
+			position: { x: 100, y: 100 },
+			data: {
+				label: 'New Entity',
+				fields: [
+					{ name: 'id', type: 'PK' },
+					{ name: 'field', type: 'varchar' },
+					{ name: 'field', type: 'varchar' }
+				]
+			}
+		}
 	]);
 
 	let edges = $state.raw([]);
@@ -65,11 +80,24 @@
 			y: event.clientY
 		});
 
+		let nodeData: any = { label: 'New Node' };
+
+    	if (type.current === 'EntityNode') {
+        	nodeData = {
+            	label: 'New Entity',
+            	fields: [
+                	{ name: 'id', type: 'PK' },
+                	{ name: 'field', type: 'varchar' },
+                	{ name: 'field', type: 'varchar' }
+            	]
+        	};
+    	}
+
 		const newNode = {
 			id: `${Math.random()}`,
 			type: type.current,
 			position,
-			data: { label: `` }, // Define labels in the nodes themselves
+			data: nodeData,
 			origin: [0.5, 0.0]
 		} satisfies Node;
 
