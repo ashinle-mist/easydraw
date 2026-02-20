@@ -13,6 +13,7 @@
 
 	import { useDnD } from '$lib/flow/DnDProvider.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import RightSidebar from '$lib/components/RightSidebar.svelte';
 	import ContextMenu from '$lib/flow/ContextMenu.svelte';
 	import RectangleNode from '$lib/flow/nodes/RectangleNode.svelte';
 	import EntityNode from '$lib/flow/nodes/EntityNode.svelte';
@@ -134,6 +135,26 @@
 	function handlePaneClick() {
 		menu = null;
 	}
+
+	// Reactive state to find the currently selected EntityNode
+	let selectedEntityNode = $derived(
+        nodes.find((n: any) => n.selected && n.type === 'EntityNode')
+    );
+
+	// Function to update the data of a specific node
+	function updateNodeData(nodeId: string, newData: any) {
+        // Since you use $state.raw, we must trigger a full reassignment
+        nodes = nodes.map((n) => {
+            if (n.id === nodeId) {
+                // Merge existing data with the new data from RightSidebar
+                return { 
+                    ...n, 
+                    data: { ...n.data, ...newData } 
+                };
+            }
+            return n;
+        });
+    }
 </script>
 
 <main style="width:100vw; height:100vh;" bind:clientWidth bind:clientHeight>
@@ -165,6 +186,15 @@
 
 	</SvelteFlow>
 	<Sidebar />
+
+	{#if selectedEntityNode}
+        {@const activeNode = selectedEntityNode}
+        <RightSidebar 
+            node={activeNode} 
+            onUpdate={(updatedData: any) => updateNodeData(activeNode.id, updatedData)} 
+        />
+    {/if}
+
 	<Controls position="top-right" />
 
 </main>

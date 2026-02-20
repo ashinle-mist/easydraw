@@ -1,9 +1,10 @@
 <script lang="ts">
     import { Handle, Position } from '@xyflow/svelte';
-    export let data;
+
+    let { data, selected } = $props();
 </script>
 
-<div class="erd-table">
+<div class="erd-table" class:selected-node={selected}>
     <div class="header" style="background: {data.color || '#cbcaca'}">
         <input 
             type="text"
