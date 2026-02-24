@@ -45,9 +45,16 @@
 
 
 <div
+	role="button"
+	tabindex="0"
 	style="top: {top}px; left: {left}px; right: {right}px; bottom: {bottom}px;"
 	class="context-menu"
 	{onclick}
+	onkeydown={(e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.stopPropagation();
+		}
+	}}
 	onpointerdown={(e) => e.stopPropagation()}
 >
 	<p style="margin: 0.5em;">
