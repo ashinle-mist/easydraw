@@ -8,7 +8,7 @@
 		left,
 		right,
 		bottom,
-		onclick,
+		onclick
 	}: {
 		id: string;
 		top: number | undefined;
@@ -32,38 +32,59 @@
 					id: nanoid(),
 					position: {
 						x: node.position.x,
-						y: node.position.y + 100,
-					},
-				},
+						y: node.position.y + 100
+					}
+				}
 			];
 		}
 	}
 
 	function deleteNode() {
-		deleteElements({ nodes: [{ id }] });	}
+		deleteElements({ nodes: [{ id }] });
+	}
 </script>
 
 
 <div
+	role="button"
+	tabindex="0"
 	style="top: {top}px; left: {left}px; right: {right}px; bottom: {bottom}px;"
 	class="context-menu"
 	{onclick}
+	onkeydown={(e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.stopPropagation();
+		}
+	}}
 	onpointerdown={(e) => e.stopPropagation()}
 >
 	<p style="margin: 0.5em;">
-		<small>node: {id}</small>
+		<small>Edit Node:</small>
 	</p>
-	<button onclick={duplicateNode}>duplicate</button>
-	<button onclick={deleteNode}>delete</button>
+	<span class="button-list">
+		<button onclick={duplicateNode}>Duplicate</button>
+		<button onclick={deleteNode}>Delete</button>
+	</span>
 </div>
 
 <style>
+    small {
+        font-weight: bold;
+    }
+
     .context-menu {
         background: white;
-        border-style: solid;
+        border: 1px solid black;
         box-shadow: 10px 19px 20px rgba(0, 0, 0, 10%);
         position: absolute;
         z-index: 10;
+        border-radius: 10px;
+    }
+
+    /*https://css-tricks.com/almanac/pseudo-selectors/l/last-child/*/
+    /*https://www.w3schools.com/cssref/css3_pr_border-radius.php*/
+    button:last-child {
+				border-radius: 0 0 10px 10px;
     }
 
     .context-menu button {
@@ -72,6 +93,12 @@
         padding: 0.5em;
         text-align: left;
         width: 100%;
+
+        background: #f2f2f2;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        outline: inherit;
     }
 
     .context-menu button:hover {
