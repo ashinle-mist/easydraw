@@ -4,12 +4,12 @@
     function addField() {
         const newField = { name: 'field', type: 'varchar' };
         const updatedFields = [...(node.data.fields || []), newField];
-        onUpdate(updatedFields);
+        onUpdate({ fields: updatedFields });
     }
 
     function removeField(index: number) {
         const updatedFields = node.data.fields.filter((_: any, i: number) => i !== index);
-        onUpdate(updatedFields);
+        onUpdate({ fields: updatedFields });
     }
 </script>
 
@@ -22,7 +22,7 @@
     <div class="field-list">
         {#each node.data.fields as field, i}
             <div class="field-row">
-                <input class="input-styled name-input" bind:value={field.name} oninput={() => onUpdate(node.data.fields)} />
+                <input class="input-styled name-input" bind:value={field.name} oninput={() => onUpdate({ fields: node.data.fields })} />
                 <select class="input-styled" bind:value={field.type} onchange={() => onUpdate(node.data.fields)}>
                     <option value="PK">PK</option>
                     <option value="varchar">varchar</option>
