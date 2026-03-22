@@ -1,7 +1,10 @@
 <script lang="ts">
     import { Handle, Position } from '@xyflow/svelte';
+    import { getContext } from 'svelte';
 
     let { data, selected } = $props();
+
+    const updateNode = getContext<(id: string, data: any) => void>('updateNode');
 </script>
 
 <div class="erd-table" class:selected-node={selected}>
@@ -10,6 +13,7 @@
             type="text"
             bind:value={data.label}
             class="header-input"
+            oninput={(e) => data.onEdit?.({ label: e.currentTarget.value })}
         />
     </div>
     <div class="rows">
@@ -21,12 +25,24 @@
                     type="text"
                     bind:value={field.name}
                     class="field-input name"
+                    oninput={(e) => {
+                        const updated = data.fields.map((f: any, idx: number) =>
+                            idx === i ? { ...f, name: e.currentTarget.value } : f
+                        );
+                        data.onEdit?.({ fields: updated });
+                    }}
                 />
 
                 <input
                     type="text"
                     bind:value={field.type}
                     class="field-input type"
+                    oninput={(e) => {
+                        const updated = data.fields.map((f: any, idx: number) =>
+                            idx === i ? { ...f, name: e.currentTarget.value } : f
+                        );
+                        data.onEdit?.({ fields: updated });
+                    }}
                 />
 
                 <Handle type="source" position={Position.Right} id="source-{i}-source" />

@@ -16,14 +16,32 @@
 <aside class="sidebar right">
     <div class="sidebar-header">
         <span class="context-label">Edit Table</span>
-        <input class="table-name" bind:value={node.data.label} oninput={() => onUpdate({ label: node.data.label })} />
+        <input class="table-name" bind:value={node.data.label} oninput={(e) => onUpdate({ label: e.currentTarget.value })} />
     </div>
 
     <div class="field-list">
         {#each node.data.fields as field, i}
             <div class="field-row">
-                <input class="input-styled name-input" bind:value={field.name} oninput={() => onUpdate({ fields: node.data.fields })} />
-                <select class="input-styled" bind:value={field.type} onchange={() => onUpdate(node.data.fields)}>
+                <input 
+                    class="input-styled name-input" 
+                    bind:value={field.name} 
+                    oninput={(e) => {
+                        const updated = node.data.fields.map((f: any, idx: number) =>
+                            idx === i ? { ...f, name: e.currentTarget.value } : f
+                        );
+                        onUpdate({ fields: updated });
+                    }} 
+                />
+                <select 
+                    class="input-styled" 
+                    bind:value={field.type} 
+                    onchange={(e) => {
+                        const updated = node.data.fields.map((f: any, idx: number) =>
+                            idx === i ? { ...f, type: e.currentTarget.value } : f
+                        );
+                        onUpdate({ fields: updated });
+                    }}
+                >
                     <option value="PK">PK</option>
                     <option value="varchar">varchar</option>
                     <option value="int">int</option>

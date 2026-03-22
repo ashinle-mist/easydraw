@@ -11,6 +11,8 @@
 		type NodeEventWithPointer, ConnectionMode
 	} from '@xyflow/svelte';
 
+	import { setContext } from 'svelte';
+
 	import { useDnD } from '$lib/flow/DnDProvider.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import RightSidebar from '$lib/components/RightSidebar.svelte';
@@ -20,6 +22,8 @@
 
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
+
+	setContext('updateNode', (id: string, data: any) => updateNodeData(id, data));
 
 	// Define all of our custom node here
 	const nodeTypes = {
@@ -45,7 +49,8 @@
 					{ name: 'id', type: 'PK' },
 					{ name: 'field', type: 'varchar' },
 					{ name: 'field', type: 'varchar' }
-				]
+				],
+				onEdit: (newData: any) => updateNodeData('2', newData)
 			}
 		}
 	]);
@@ -94,11 +99,16 @@
         	};
     	}
 
+		const newNodeId = `${Math.random()}`;
+
 		const newNode = {
 			id: `${Math.random()}`,
 			type: type.current,
 			position,
-			data: nodeData,
+			data: {
+				...nodeData,
+				onEdit: (newData: any) => updateNodeData(newNodeId, newData)
+			},
 			origin: [0.5, 0.0]
 		} satisfies Node;
 
@@ -166,8 +176,7 @@
 			ondragover={onDragOver}
 			ondrop={onDrop}
 			onnodecontextmenu={handleContextMenu}
-			onpaneclick={handlePaneClick}
-			onpointerdown={handlePaneClick}
+			onpaneclick={handlePaneClick} 
 			{nodeTypes}
 			connectionMode={ConnectionMode.Loose}
 	>
