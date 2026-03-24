@@ -21,6 +21,8 @@
 	import ContextMenu from '$lib/flow/ContextMenu.svelte';
 	import RectangleNode from '$lib/flow/nodes/RectangleNode.svelte';
 	import EntityNode from '$lib/flow/nodes/EntityNode.svelte';
+	import RelationshipEdge from '$lib/flow/edges/RelationshipEdge.svelte';
+	import CrowsFootMarkers from './edges/CrowsFootMarkers.svelte';
 
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
@@ -58,6 +60,10 @@
 	]);
 
 	let edges = $state.raw<Edge[]>([]);
+
+	const edgeTypes = {
+		relationship: RelationshipEdge
+	};
 
 	const { screenToFlowPosition } = useSvelteFlow();
 
@@ -173,7 +179,7 @@
 		const newEdge: Edge = {
 			...connection,
 			id: `${Math.random()}`,
-			type: 'smoothstep',
+			type: 'relationship',
 			data: { relationship: 'one-to-many' } // default 
 		};
 		edges = addEdge(newEdge, edges);
@@ -203,7 +209,9 @@
 			{nodeTypes}
 			connectionMode={ConnectionMode.Loose}
 			onconnect={onConnect}
+			{edgeTypes}
 	>
+		<CrowsFootMarkers />
 		<Background variant={BackgroundVariant.Dots} />
 		{#if menu}
 			<ContextMenu
