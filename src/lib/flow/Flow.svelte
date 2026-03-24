@@ -121,6 +121,7 @@
 			onpointerdown={handlePaneClick}
 			{nodeTypes}
 			connectionMode={ConnectionMode.Loose}
+			proOptions={{ hideAttribution: true }}
 	>
 		<Background variant={BackgroundVariant.Dots} />
 		{#if menu}
