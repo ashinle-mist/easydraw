@@ -15,7 +15,8 @@
 	const type = useDnD();
 
 	const onDragStart = (event: DragEvent, nodeType: string) => {
-		if (!event.dataTransfer) {
+		console.log('dragstart fired', nodeType);
+        if (!event.dataTransfer) {
 			return null;
 		}
 

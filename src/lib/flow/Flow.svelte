@@ -126,6 +126,7 @@
 	};
 
 	const onDrop = (event: DragEvent) => {
+		console.log('drop fired', type.current);
 		event.preventDefault();
 
 		if (!type.current) {
@@ -392,7 +393,14 @@
     main {
         height: 100vh;
         display: flex;
-        flex-direction: column-reverse;
+        flex-direction: column;
+    }
+
+	.canvas-shell {
+        flex: 1;      
+        position: relative;
+        width: 100%;
+        min-height: 0;  
     }
 
 	.edge-editor {
