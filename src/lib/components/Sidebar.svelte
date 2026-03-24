@@ -26,10 +26,11 @@
 <style>
     aside {
         width: 300px;
-        height: 95vh;
-        position: fixed;
+        /* Keep sidebar inside the canvas shell, above the footer row. */
+        position: absolute;
         top: 20px;
         left: 0;
+        bottom: 20px;
 
         padding: 3em 1.5em 1em;
         margin: 0;

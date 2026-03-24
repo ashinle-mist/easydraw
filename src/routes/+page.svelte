@@ -9,4 +9,9 @@
 	<DnDProvider>
 		<Flow />
 	</DnDProvider>
+	<footer>
+		
+	</footer>
 </SvelteFlowProvider>
+
+

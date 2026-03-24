@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import {
 		SvelteFlow,
 		Controls,
@@ -10,11 +11,23 @@
 		type Edge,
 		type NodeEventWithPointer, ConnectionMode
 	} from '@xyflow/svelte';
+	import { get } from 'svelte/store';
 
 	import { useDnD } from '$lib/flow/DnDProvider.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import EditorFooter from '$lib/components/EditorFooter.svelte';
 	import ContextMenu from '$lib/flow/ContextMenu.svelte';
 	import RectangleNode from '$lib/flow/nodes/RectangleNode.svelte';
+	import {
+		clearCanvasDirtyPage,
+		createPage,
+		editorStore,
+		loadEditorStateFromStorage,
+		markCanvasDirtyPage,
+		saveActivePageToStorage,
+		switchPage,
+		updateActiveGraph
+	} from '$lib/stores/editor.store';
 
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
@@ -24,17 +37,36 @@
 		RectangleNode: RectangleNode,
 	};
 
-	// Define the default starting nodes in the canvas
-	let nodes = $state.raw([
-		{
-			id: '1',
-			type: 'RectangleNode',
-			data: { label: 'Drag nodes to the canvas' },
-			position: { x: 0, y: 0 }
-		},
-	]);
+	// Returns the active page snapshot from editor store.
+	const getActivePageSnapshot = () => {
+		const state = get(editorStore);
+		return state.pages.find((page) => page.id === state.activePageId) ?? state.pages[0] ?? null;
+	};
 
-	let edges = $state.raw([]);
+	// Deep-clones graph arrays so canvas edits do not mutate store by reference.
+	const cloneGraph = <T,>(items: T[]) => {
+		return typeof structuredClone === 'function'
+			? structuredClone(items)
+			: (JSON.parse(JSON.stringify(items)) as T[]);
+	};
+	// Creates a stable signature for dirty-checking canvas graph state.
+	const createCanvasSignature = (currentNodes: Node[], currentEdges: Edge[]) => {
+		return JSON.stringify({
+			nodes: currentNodes,
+			edges: currentEdges
+		});
+	};
+
+	const initialPage = getActivePageSnapshot();
+	const initialNodes = cloneGraph(initialPage?.nodes ?? ([] as Node[]));
+	const initialEdges = cloneGraph(initialPage?.edges ?? ([] as Edge[]));
+
+	// Local graph state used by SvelteFlow bindings.
+	let nodes = $state.raw(initialNodes);
+	let edges = $state.raw(initialEdges);
+	let canvasPageId: string | null = $state(initialPage?.id ?? null);
+	let baselineCanvasSignature = $state(createCanvasSignature(initialNodes, initialEdges));
+	let isHydratingCanvas = $state(false);
 
 	const { screenToFlowPosition } = useSvelteFlow();
 
@@ -106,45 +138,144 @@
 	function handlePaneClick() {
 		menu = null;
 	}
+
+	// Persists the current canvas graph into the active page in store.
+	function persistCanvasToStore() {
+		updateActiveGraph(nodes, edges);
+		baselineCanvasSignature = createCanvasSignature(nodes, edges);
+		if (canvasPageId) {
+			clearCanvasDirtyPage(canvasPageId);
+		}
+	}
+
+	// Loads the active page graph from store into canvas state.
+	function hydrateCanvasFromStore() {
+		const activePage = getActivePageSnapshot();
+		const nextNodes = cloneGraph(activePage?.nodes ?? []);
+		const nextEdges = cloneGraph(activePage?.edges ?? []);
+
+		isHydratingCanvas = true;
+		nodes = nextNodes;
+		edges = nextEdges;
+		canvasPageId = activePage?.id ?? null;
+		baselineCanvasSignature = createCanvasSignature(nextNodes, nextEdges);
+		if (canvasPageId) {
+			clearCanvasDirtyPage(canvasPageId);
+		}
+
+		queueMicrotask(() => {
+			isHydratingCanvas = false;
+		});
+	}
+
+	// Switches page with explicit two-step sync: persist old page, then hydrate new page.
+	function handleSwitchPage(pageId: string) {
+		persistCanvasToStore();
+		switchPage(pageId);
+		hydrateCanvasFromStore();
+		handlePaneClick();
+	}
+
+	// Creates a new page and hydrates its graph into canvas.
+	function handleCreatePage() {
+		persistCanvasToStore();
+		createPage();
+		hydrateCanvasFromStore();
+		handlePaneClick();
+	}
+
+	// Marks active page as dirty immediately when canvas diverges from last synced state.
+	$effect(() => {
+		nodes;
+		edges;
+
+		if (!canvasPageId || isHydratingCanvas) return;
+
+		const currentCanvasSignature = createCanvasSignature(nodes, edges);
+
+		if (currentCanvasSignature !== baselineCanvasSignature) {
+			markCanvasDirtyPage(canvasPageId);
+		} else {
+			clearCanvasDirtyPage(canvasPageId);
+		}
+	});
+
+	// Loads editor store from localStorage once and hydrates canvas from it.
+	onMount(() => {
+		loadEditorStateFromStorage();
+		hydrateCanvasFromStore();
+
+		// Saves the current active page snapshot when user presses Ctrl/Cmd + S.
+		const handleSaveShortcut = (event: KeyboardEvent) => {
+			const isSaveShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's';
+			if (!isSaveShortcut) return;
+
+			event.preventDefault();
+			persistCanvasToStore();
+			saveActivePageToStorage();
+		};
+
+		window.addEventListener('keydown', handleSaveShortcut);
+		return () => {
+			window.removeEventListener('keydown', handleSaveShortcut);
+		};
+	});
 </script>
 
-<main style="width:100vw; height:100vh;" bind:clientWidth bind:clientHeight>
-	<SvelteFlow
-			bind:nodes
-			bind:edges
-			{defaultEdgeOptions}
-			fitView
-			ondragover={onDragOver}
-			ondrop={onDrop}
-			onnodecontextmenu={handleContextMenu}
-			onpaneclick={handlePaneClick}
-			onpointerdown={handlePaneClick}
-			{nodeTypes}
-			connectionMode={ConnectionMode.Loose}
-	>
-		<Background variant={BackgroundVariant.Dots} />
-		{#if menu}
-			<ContextMenu
-				onclick={handlePaneClick}
-				id={menu.id}
-				top={menu.top}
-				left={menu.left}
-				right={menu.right}
-				bottom={menu.bottom}
-			/>
-		{/if}
-		<MiniMap />
-
-	</SvelteFlow>
-	<Sidebar />
-	<Controls position="top-right" />
-
+<main class="editor-root">
+	<section class="canvas-shell" bind:clientWidth bind:clientHeight>
+		<SvelteFlow
+				bind:nodes
+				bind:edges
+				{defaultEdgeOptions}
+				fitView
+				ondragover={onDragOver}
+				ondrop={onDrop}
+				onnodecontextmenu={handleContextMenu}
+				onpaneclick={handlePaneClick}
+				onpointerdown={handlePaneClick}
+				{nodeTypes}
+				connectionMode={ConnectionMode.Loose}
+		>
+			<Background variant={BackgroundVariant.Dots} />
+			{#if menu}
+				<ContextMenu
+					onclick={handlePaneClick}
+					id={menu.id}
+					top={menu.top}
+					left={menu.left}
+					right={menu.right}
+					bottom={menu.bottom}
+				/>
+			{/if}
+			<MiniMap />
+		</SvelteFlow>
+		<Sidebar />
+		<Controls position="top-right" />
+	</section>
+	<EditorFooter onSwitchPage={handleSwitchPage} onCreatePage={handleCreatePage} />
 </main>
 
 <style>
-    main {
-        height: 100vh;
-        display: flex;
-        flex-direction: column-reverse;
-    }
+	/* Root editor layout: canvas on top, footer pinned as the last row. */
+	.editor-root {
+		width: 100vw;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	/* Canvas shell reserves all remaining height above the footer. */
+	.canvas-shell {
+		position: relative;
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	/* Keep SvelteFlow sized to the available canvas shell area. */
+	.canvas-shell :global(.svelte-flow) {
+		width: 100%;
+		height: 100%;
+	}
 </style>
