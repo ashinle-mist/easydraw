@@ -89,6 +89,22 @@
 			? structuredClone(items)
 			: (JSON.parse(JSON.stringify(items)) as T[]);
 	};
+
+	// Clones nodes and also re-attaches the onEdit callback to each node's data, since functions cannot be cloned
+	const cloneNodes = (items: Node[]) => {
+		const cloned = typeof structuredClone === 'function'
+			? structuredClone(items)
+			: (JSON.parse(JSON.stringify(items)) as Node[]);
+
+		return cloned.map((n) => ({
+			...n,
+			data: {
+					...n.data,
+					onEdit: (newData: any) => updateNodeData(n.id, newData)
+			}
+		}));
+	};
+
 	// Creates a stable signature for dirty-checking canvas graph state.
 	const createCanvasSignature = (currentNodes: Node[], currentEdges: Edge[]) => {
 		return JSON.stringify({
@@ -98,7 +114,7 @@
 	};
 
 	const initialPage = getActivePageSnapshot();
-	const initialNodes = cloneGraph(initialPage?.nodes ?? ([] as Node[]));
+	const initialNodes = cloneNodes(initialPage?.nodes ?? ([] as Node[]));
 	const initialEdges = cloneGraph(initialPage?.edges ?? ([] as Edge[]));
 
 	// Local graph state used by SvelteFlow bindings.
@@ -210,7 +226,7 @@
 	// Loads the active page graph from store into canvas state.
 	function hydrateCanvasFromStore() {
 		const activePage = getActivePageSnapshot();
-		const nextNodes = cloneGraph(activePage?.nodes ?? []);
+		const nextNodes = cloneNodes(activePage?.nodes ?? []);
 		const nextEdges = cloneGraph(activePage?.edges ?? []);
 
 		isHydratingCanvas = true;
