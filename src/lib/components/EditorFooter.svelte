@@ -3,11 +3,11 @@
 	import {
 		createPage,
 		deletePage,
-		editorStore,
+		editorStoreSvelte,
 		renamePage,
 		switchPage,
 		visibleUnsavedPageIdsStore
-	} from '$lib/stores/editor.store';
+	} from '$lib/stores/editor.store.svelte';
 
 	let {
 		onSwitchPage,
@@ -83,12 +83,12 @@
 
 <footer class="editor-footer" onpointerdown={(event) => event.stopPropagation()}>
 	<div class="page-tabs" aria-label="Editor pages">
-		{#each $editorStore.pages as page}
+		{#each $editorStoreSvelte.pages as page}
 			<div class="page-item" role="presentation">
 				<input
 					type="text"
 					class="page-name-input"
-					class:active={$editorStore.activePageId === page.id}
+					class:active={$editorStoreSvelte.activePageId === page.id}
 					value={page.name}
 					data-page-input-id={page.id}
 					onfocus={() => handleSwitchPage(page.id)}
@@ -103,7 +103,7 @@
 					aria-label="Open page options"
 					aria-haspopup="menu"
 					aria-expanded={openMenuPageId === page.id}
-					class:active={$editorStore.activePageId === page.id}
+					class:active={$editorStoreSvelte.activePageId === page.id}
 					onclick={() => handleTogglePageMenu(page.id)}
 				>
 					▾
@@ -119,7 +119,7 @@
 							role="menuitem"
 							class="menu-item danger"
 							onclick={() => handleDeletePage(page.id)}
-							disabled={$editorStore.pages.length <= 1}
+							disabled={$editorStoreSvelte.pages.length <= 1}
 						>
 							Delete
 						</button>

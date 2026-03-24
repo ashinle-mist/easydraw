@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { beforeNavigate } from '$app/navigation';
 	import {
 		SvelteFlow,
 		Controls,
@@ -21,13 +22,14 @@
 	import {
 		clearCanvasDirtyPage,
 		createPage,
-		editorStore,
+		editorStoreSvelte,
 		loadEditorStateFromStorage,
 		markCanvasDirtyPage,
 		saveActivePageToStorage,
 		switchPage,
-		updateActiveGraph
-	} from '$lib/stores/editor.store';
+		updateActiveGraph,
+		visibleUnsavedPageIdsStore,
+	} from '$lib/stores/editor.store.svelte';
 
 	// import '@xyflow/svelte/dist/style.css';
 	import '../../xy-theme.css';
@@ -39,7 +41,7 @@
 
 	// Returns the active page snapshot from editor store.
 	const getActivePageSnapshot = () => {
-		const state = get(editorStore);
+		const state = get(editorStoreSvelte);
 		return state.pages.find((page) => page.id === state.activePageId) ?? state.pages[0] ?? null;
 	};
 
@@ -204,6 +206,19 @@
 	onMount(() => {
 		loadEditorStateFromStorage();
 		hydrateCanvasFromStore();
+
+		// Prevent navigation if unsaved changes
+		beforeNavigate(({ cancel }) => {
+			const unsavedIds = get(visibleUnsavedPageIdsStore);
+			if (unsavedIds.length > 0) {
+				const confirmed = confirm(
+					"You have unsaved changes. Are you sure you want to leave?"
+				);
+				if (!confirmed) {
+					cancel(); // Stops the navigation
+				}
+			}
+		});
 
 		// Saves the current active page snapshot when user presses Ctrl/Cmd + S.
 		const handleSaveShortcut = (event: KeyboardEvent) => {

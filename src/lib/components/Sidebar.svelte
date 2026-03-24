@@ -1,7 +1,8 @@
 <script lang="ts">
 	import NodeContainer from '$lib/components/NodeContainer.svelte';
+	import { editorMetaData } from '$lib/stores/editor.store.svelte';
 
-	let fileName = $state('Untitled');
+	// let fileName = $state("Untitled")
 	let searchBar = $state('');
 
 	// Array to be passed into the NodeContainer component
@@ -14,7 +15,7 @@
 
 <aside>
 
-	<input class="file-name" bind:value={fileName} />
+	<input class="file-name" bind:value={editorMetaData.fileName} />
 	<input class="search-bar" bind:value={searchBar} placeholder="Search..." />
 
 	<NodeContainer

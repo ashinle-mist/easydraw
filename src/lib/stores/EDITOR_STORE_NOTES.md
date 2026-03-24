@@ -9,7 +9,7 @@ All line numbers below are **as of this revision** and can drift after future ed
 There are 3 distinct state layers:
 
 1. Canvas-local state in `Flow.svelte` (`nodes`, `edges`)
-2. In-memory app state in `editorStore`
+2. In-memory app state in `editorStoreSvelte`
 3. Persisted state in `localStorage` (`easydraw.editor.v1`)
 
 The current behavior is intentionally explicit:
@@ -22,7 +22,7 @@ The current behavior is intentionally explicit:
 ## File/Section Map
 
 ### 1) Store Core
-File: `src/lib/stores/editor.store.ts`
+File: `src/lib/stores/editor.store.svelte.ts`
 
 - Module header/API contract: lines `1-125`
 - Type model:
@@ -38,7 +38,7 @@ File: `src/lib/stores/editor.store.ts`
   - `isEditorState(...)`: line `210`
 - Initial/default state:
   - `initialEditorState`: line `222`
-  - `editorStore`: line `242`
+  - `editorStoreSvelte`: line `242`
 - Unsaved indicators:
   - `unsavedPageIdsStore`: line `245`
   - `visibleUnsavedPageIdsStore`: line `255`
@@ -117,12 +117,12 @@ File: `src/lib/components/EditorFooter.svelte`
 1. Flow intercepts shortcut (`Flow.svelte:209-213`)
 2. Flow syncs canvas -> store (`Flow.svelte:214`)
 3. Flow saves active page -> localStorage (`Flow.svelte:215`)
-4. Store updates saved signature + clears canvas dirty marker (`editor.store.ts:281-286`)
+4. Store updates saved signature + clears canvas dirty marker (`editor.store.svelte.ts:281-286`)
 
 ### D) Load from Storage (On Mount)
 1. Flow calls `loadEditorStateFromStorage()` (`Flow.svelte:205`)
-2. Store validates payload and sets `editorStore` (`editor.store.ts:296-303`)
-3. Store rebuilds saved signatures + clears canvas dirty markers (`editor.store.ts:301-302`)
+2. Store validates payload and sets `editorStoreSvelte` (`editor.store.svelte.ts:296-303`)
+3. Store rebuilds saved signatures + clears canvas dirty markers (`editor.store.svelte.ts:301-302`)
 4. Flow hydrates canvas from new active page snapshot (`Flow.svelte:206`)
 
 ## Unsaved Indicator Rules
@@ -131,7 +131,7 @@ The dot appears when a page id exists in `visibleUnsavedPageIdsStore`.
 A page is considered unsaved when either:
 
 1. Store-vs-storage mismatch:
-   - Page signature in `editorStore` differs from saved signature (`unsavedPageIdsStore`)
+   - Page signature in `editorStoreSvelte` differs from saved signature (`unsavedPageIdsStore`)
 2. Canvas-vs-store mismatch:
    - Active canvas diverges from baseline before explicit sync (`canvasDirtyPageIdsStore`)
 

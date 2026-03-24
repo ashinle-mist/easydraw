@@ -4,7 +4,7 @@
  * This module is the single state hub for page metadata and persisted graph data.
  * It intentionally separates 3 different "freshness" layers:
  * 1) Canvas-local graph state in Flow.svelte (live edits while user is drawing)
- * 2) editorStore state in this file (in-memory app state across pages)
+ * 2) editorStoreSvelte state in this file (in-memory app state across pages)
  * 3) localStorage snapshot (explicitly saved storage state)
  *
  * Public API contract (exported symbols)
@@ -38,7 +38,7 @@
  *   - Runtime validation guard for full snapshot structure
  *
  * Core stores:
- * - editorStore: Writable<EditorState>
+ * - editorStoreSvelte: Writable<EditorState>
  *   Signature: `Writable<EditorState>`
  *   Called by:
  *   - Flow.svelte for reading active page snapshot and page arrays
@@ -52,7 +52,7 @@
  *   Called by:
  *   - visibleUnsavedPageIdsStore (internal composition)
  *   Behavior:
- *   - Derived from `editorStore` vs `savedPageSignaturesStore`
+ *   - Derived from `editorStoreSvelte` vs `savedPageSignaturesStore`
  *   - Marks pages that differ from last saved localStorage signature
  *
  * - visibleUnsavedPageIdsStore: Readable<string[]>
@@ -77,7 +77,7 @@
  *   - Flow.svelte on initial mount (onLoad path)
  *   Behavior:
  *   - Validates localStorage snapshot shape
- *   - Replaces editorStore state with persisted snapshot
+ *   - Replaces editorStoreSvelte state with persisted snapshot
  *   - Rebuilds saved signatures and clears canvas-only dirty markers
  *
  * Editor state mutation functions:
@@ -103,7 +103,7 @@
  *   - Flow.svelte right before page create
  *   - Flow.svelte right before Ctrl/Cmd + S storage save
  *   Behavior:
- *   - Writes canvas graph snapshot into currently active page in editorStore
+ *   - Writes canvas graph snapshot into currently active page in editorStoreSvelte
  *   - Does not touch localStorage directly
  *
  * - renamePage(pageId: string, nextName: string): void
@@ -144,16 +144,21 @@
  * Derived active page:
  * - activePageStore: Readable<EditorPage | null>
  *   Called by:
- *   - Flow.svelte (snapshot-based hydration helpers may also read editorStore directly)
+ *   - Flow.svelte (snapshot-based hydration helpers may also read editorStoreSvelte directly)
  *   Behavior:
  *   - Resolves current active page
  *   - Falls back to first page when active id becomes stale
- *   - Repairs stale activePageId in editorStore
+ *   - Repairs stale activePageId in editorStoreSvelte
  */
 import { browser } from '$app/environment';
 import type { Edge, Node } from '@xyflow/svelte';
 import { nanoid } from 'nanoid';
 import { derived, get, writable } from 'svelte/store';
+
+export const editorMetaData = $state({
+	fileName: 'Untitled',
+	lastSaved: Date.now()
+})
 
 // A single editable page in the diagram editor.
 export interface EditorPage {
@@ -173,7 +178,7 @@ const STORAGE_KEY = 'easydraw.editor.v1';
 
 // Stores the last-saved signature for each page id.
 const savedPageSignaturesStore = writable<Record<string, string>>({});
-// Stores pages that are dirty in the canvas but not yet synced back into editorStore.
+// Stores pages that are dirty in the canvas but not yet synced back into editorStoreSvelte.
 const canvasDirtyPageIdsStore = writable<string[]>([]);
 
 // Creates a stable string signature for dirty-checking a page against localStorage snapshot.
@@ -239,11 +244,11 @@ export const initialEditorState: EditorState = {
 };
 
 // Shared writable store used by Flow, footer, and other editor UI parts.
-export const editorStore = writable<EditorState>(initialEditorState);
+export const editorStoreSvelte = writable<EditorState>(initialEditorState);
 
 // List of page ids whose editor data is newer than the localStorage snapshot.
 export const unsavedPageIdsStore = derived(
-	[editorStore, savedPageSignaturesStore],
+	[editorStoreSvelte, savedPageSignaturesStore],
 	([$editorState, $savedSignatures]) => {
 		return $editorState.pages
 			.filter((page) => $savedSignatures[page.id] !== getPageSignature(page))
@@ -278,7 +283,7 @@ export function clearAllCanvasDirtyPages() {
 export function saveActivePageToStorage() {
 	if (!browser) return false;
 
-	const currentState = get(editorStore);
+	const currentState = get(editorStoreSvelte);
 	const activePage = currentState.pages.find((page) => page.id === currentState.activePageId);
 	if (!activePage) return false;
 
@@ -324,7 +329,7 @@ export function loadEditorStateFromStorage() {
 		const parsedState = JSON.parse(rawState) as unknown;
 		if (!isEditorState(parsedState)) return false;
 
-		editorStore.set(parsedState);
+		editorStoreSvelte.set(parsedState);
 		savedPageSignaturesStore.set(buildPageSignatures(parsedState.pages));
 		clearAllCanvasDirtyPages();
 		return true;
@@ -335,7 +340,7 @@ export function loadEditorStateFromStorage() {
 
 // Updates the active page only when the target page id exists.
 export function switchPage(pageId: string) {
-	editorStore.update((state) => {
+	editorStoreSvelte.update((state) => {
 		// Guard against invalid page ids from the UI.
 		const pageExists = state.pages.some((page) => page.id === pageId);
 		if (!pageExists) return state;
@@ -351,7 +356,7 @@ export function switchPage(pageId: string) {
 export function createPage(name?: string) {
 	let createdPageId: string | null = null;
 
-	editorStore.update((state) => {
+	editorStoreSvelte.update((state) => {
 		// Page name can follow display order and does not need to be unique.
 		const nextPageNumber = state.pages.length + 1;
 
@@ -380,7 +385,7 @@ export function createPage(name?: string) {
 
 // Updates graph content (nodes + edges) for the currently active page.
 export function updateActiveGraph(nodes: Node[], edges: Edge[]) {
-	editorStore.update((state) => {
+	editorStoreSvelte.update((state) => {
 		const activePageExists = state.pages.some((page) => page.id === state.activePageId);
 		if (!activePageExists) return state;
 
@@ -401,7 +406,7 @@ export function updateActiveGraph(nodes: Node[], edges: Edge[]) {
 
 // Renames a page by id using the exact text from inline page-name input.
 export function renamePage(pageId: string, nextName: string) {
-	editorStore.update((state) => ({
+	editorStoreSvelte.update((state) => ({
 		...state,
 		pages: state.pages.map((page) =>
 			page.id === pageId
@@ -416,7 +421,7 @@ export function renamePage(pageId: string, nextName: string) {
 
 // Deletes a page by id while keeping at least one page alive.
 export function deletePage(pageId: string) {
-	editorStore.update((state) => {
+	editorStoreSvelte.update((state) => {
 		const pageExists = state.pages.some((page) => page.id === pageId);
 		if (!pageExists) return state;
 		if (state.pages.length <= 1) return state;
@@ -435,8 +440,8 @@ export function deletePage(pageId: string) {
 }
 
 // Read-only store for the currently active page object.
-// If activePageId is stale, it falls back to the first page and repairs the id in editorStore.
-export const activePageStore = derived(editorStore, ($editorState, set) => {
+// If activePageId is stale, it falls back to the first page and repairs the id in editorStoreSvelte.
+export const activePageStore = derived(editorStoreSvelte, ($editorState, set) => {
 	const activePage = $editorState.pages.find((page) => page.id === $editorState.activePageId);
 	if (activePage) {
 		set(activePage);
@@ -448,7 +453,7 @@ export const activePageStore = derived(editorStore, ($editorState, set) => {
 
 	// Keep source state consistent with the fallback page.
 	if (fallbackPage && $editorState.activePageId !== fallbackPage.id) {
-		editorStore.update((state) => ({
+		editorStoreSvelte.update((state) => ({
 			...state,
 			activePageId: fallbackPage.id
 		}));
