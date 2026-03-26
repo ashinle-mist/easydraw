@@ -11,7 +11,8 @@
 		type Edge,
 		type NodeEventWithPointer, ConnectionMode
 	} from '@xyflow/svelte';
-	import { get } from 'svelte/store';
+	import { nanoid } from 'nanoid';
+	import { derived, get, type Subscriber, type Unsubscriber, type Updater, type Writable } from 'svelte/store';
 
 	import { useDnD } from '$lib/flow/DnDProvider.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
@@ -19,11 +20,10 @@
 	import ContextMenu from '$lib/flow/ContextMenu.svelte';
 	import RectangleNode from '$lib/flow/nodes/RectangleNode.svelte';
 	import {
-		clearCanvasDirtyPage,
+		activePageStore,
 		createPage,
 		editorStore,
 		loadEditorStateFromStorage,
-		markCanvasDirtyPage,
 		saveActivePageToStorage,
 		switchPage,
 		updateActiveGraph
@@ -37,6 +37,7 @@
 		RectangleNode: RectangleNode,
 	};
 
+<<<<<<< Updated upstream
 	// Returns the active page snapshot from editor store.
 	const getActivePageSnapshot = () => {
 		const state = get(editorStore);
@@ -60,13 +61,96 @@
 	const initialPage = getActivePageSnapshot();
 	const initialNodes = cloneGraph(initialPage?.nodes ?? ([] as Node[]));
 	const initialEdges = cloneGraph(initialPage?.edges ?? ([] as Edge[]));
+=======
+	// Define the default starting nodes in the canvas
+	// let nodes = $state.raw([
+	// 	{
+	// 		id: '1',
+	// 		type: 'RectangleNode',
+	// 		data: { label: 'Drag nodes to the canvas' },
+	// 		position: { x: 0, y: 0 }
+	// 	},
+	// 	{
+	// 		id: '2',
+	// 		type: 'EntityNode',
+	// 		position: { x: 100, y: 100 },
+	// 		data: {
+	// 			label: 'New Entity',
+	// 			fields: [
+	// 				{ name: 'id', type: 'PK' },
+	// 				{ name: 'field', type: 'varchar' },
+	// 				{ name: 'field', type: 'varchar' }
+	// 			],
+	// 			onEdit: (newData: any) => updateNodeData('2', newData)
+	// 		}
+	// 	}
+	// ]);
 
-	// Local graph state used by SvelteFlow bindings.
-	let nodes = $state.raw(initialNodes);
-	let edges = $state.raw(initialEdges);
-	let canvasPageId: string | null = $state(initialPage?.id ?? null);
-	let baselineCanvasSignature = $state(createCanvasSignature(initialNodes, initialEdges));
-	let isHydratingCanvas = $state(false);
+	// let edges = $state.raw<Edge[]>([]);
+
+	const edgeTypes = {
+		relationship: RelationshipEdge
+	};
+
+	// NOTE: Attaches node-level edit callback so EntityNode can push changes to editorStore immediately.
+	const withNodeEditHandlers = (nodes: Node[]) =>
+		nodes.map((node) => ({
+			...node,
+			data: {
+				...node.data,
+				onEdit: (newData: any) => updateNodeData(node.id, newData)
+			}
+		}));
+
+	// NOTE: Ensures active page nodes in editorStore always have runtime callbacks after load/switch.
+	function ensureActivePageNodeHandlers() {
+		const activePage = get(activePageStore);
+		if (!activePage) return;
+
+		updateActiveGraph(withNodeEditHandlers(activePage.nodes), activePage.edges);
+	}
+>>>>>>> Stashed changes
+
+	// NOTE: Writable bridge so `bind:nodes` writes straight into editorStore active page.
+	function createActiveNodesStore(): Writable<Node[]> {
+		const subscribe = (run: Subscriber<Node[]>): Unsubscriber =>
+			derived(activePageStore, (page) => page?.nodes ?? []).subscribe(run);
+
+		const set = (nextNodes: Node[]) => {
+			const activePage = get(activePageStore);
+			if (!activePage) return;
+
+			updateActiveGraph(withNodeEditHandlers(nextNodes), activePage.edges);
+		};
+
+		const update = (updater: Updater<Node[]>) => {
+			set(updater(get(activePageStore)?.nodes ?? []));
+		};
+
+		return { subscribe, set, update };
+	}
+
+	// NOTE: Writable bridge so `bind:edges` writes straight into editorStore active page.
+	function createActiveEdgesStore(): Writable<Edge[]> {
+		const subscribe = (run: Subscriber<Edge[]>): Unsubscriber =>
+			derived(activePageStore, (page) => page?.edges ?? []).subscribe(run);
+
+		const set = (nextEdges: Edge[]) => {
+			const activePage = get(activePageStore);
+			if (!activePage) return;
+
+			updateActiveGraph(activePage.nodes, nextEdges);
+		};
+
+		const update = (updater: Updater<Edge[]>) => {
+			set(updater(get(activePageStore)?.edges ?? []));
+		};
+
+		return { subscribe, set, update };
+	}
+
+	const activeNodesStore = createActiveNodesStore();
+	const activeEdgesStore = createActiveEdgesStore();
 
 	const { screenToFlowPosition } = useSvelteFlow();
 
@@ -97,15 +181,33 @@
 			y: event.clientY
 		});
 
+<<<<<<< Updated upstream
+=======
+		let nodeData: any = { label: 'New Node' };
+
+		if (type.current === 'EntityNode') {
+			nodeData = {
+				label: 'New Entity',
+				fields: [
+					{ name: 'id', type: 'PK' },
+					{ name: 'field', type: 'varchar' },
+					{ name: 'field', type: 'varchar' }
+				]
+			};
+		}
+
+		const newNodeId = nanoid();
+
+>>>>>>> Stashed changes
 		const newNode = {
-			id: `${Math.random()}`,
+			id: newNodeId,
 			type: type.current,
 			position,
 			data: { label: `` }, // Define labels in the nodes themselves
 			origin: [0.5, 0.0]
 		} satisfies Node;
 
-		nodes = [...nodes, newNode];
+		activeNodesStore.update((nodes) => [...nodes, newNode]);
 	};
 
 	// Context Menu
@@ -139,6 +241,7 @@
 		menu = null;
 	}
 
+<<<<<<< Updated upstream
 	// Persists the current canvas graph into the active page in store.
 	function persistCanvasToStore() {
 		updateActiveGraph(nodes, edges);
@@ -169,49 +272,32 @@
 	}
 
 	// Switches page with explicit two-step sync: persist old page, then hydrate new page.
+=======
+	// NOTE: Page switch is now metadata-only because graph state is already synced into editorStore live.
+>>>>>>> Stashed changes
 	function handleSwitchPage(pageId: string) {
-		persistCanvasToStore();
 		switchPage(pageId);
-		hydrateCanvasFromStore();
+		ensureActivePageNodeHandlers();
 		handlePaneClick();
 	}
 
-	// Creates a new page and hydrates its graph into canvas.
+	// NOTE: Creating page only updates editorStore; canvas follows via active-page binding.
 	function handleCreatePage() {
-		persistCanvasToStore();
 		createPage();
-		hydrateCanvasFromStore();
 		handlePaneClick();
 	}
 
-	// Marks active page as dirty immediately when canvas diverges from last synced state.
-	$effect(() => {
-		nodes;
-		edges;
-
-		if (!canvasPageId || isHydratingCanvas) return;
-
-		const currentCanvasSignature = createCanvasSignature(nodes, edges);
-
-		if (currentCanvasSignature !== baselineCanvasSignature) {
-			markCanvasDirtyPage(canvasPageId);
-		} else {
-			clearCanvasDirtyPage(canvasPageId);
-		}
-	});
-
-	// Loads editor store from localStorage once and hydrates canvas from it.
+	// NOTE: Initial load hydrates editorStore from localStorage, then re-attaches runtime callbacks.
 	onMount(() => {
 		loadEditorStateFromStorage();
-		hydrateCanvasFromStore();
+		ensureActivePageNodeHandlers();
 
-		// Saves the current active page snapshot when user presses Ctrl/Cmd + S.
+		// NOTE: Ctrl/Cmd + S persists active page from editorStore to localStorage.
 		const handleSaveShortcut = (event: KeyboardEvent) => {
 			const isSaveShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's';
 			if (!isSaveShortcut) return;
 
 			event.preventDefault();
-			persistCanvasToStore();
 			saveActivePageToStorage();
 		};
 
@@ -220,10 +306,55 @@
 			window.removeEventListener('keydown', handleSaveShortcut);
 		};
 	});
+<<<<<<< Updated upstream
+=======
+
+	// Reactive state to find the currently selected EntityNode
+	let selectedEntityNode = $derived(
+        ($activePageStore?.nodes ?? []).find((n: any) => n.selected && n.type === 'EntityNode')
+    );
+
+	// Function to update the data of a specific node
+	function updateNodeData(nodeId: string, newData: any) {
+        activeNodesStore.update((nodes) =>
+			nodes.map((n) => {
+				if (n.id === nodeId) {
+					return {
+						...n,
+						data: { ...n.data, ...newData }
+					};
+				}
+				return n;
+			})
+		);
+    }
+
+	// Function to handle new connections between nodes
+	function onConnect(connection: Connection) {
+		const newEdge: Edge = {
+			...connection,
+			id: nanoid(),
+			type: 'relationship',
+			data: { relationship: 'one-to-many' } // default 
+		};
+		activeEdgesStore.update((edges) => addEdge(newEdge, edges));
+	}
+
+	let selectedEdge = $derived(
+		($activePageStore?.edges ?? []).find((e: any) => e.selected)
+	);
+	
+	function updateEdgeData(edgeId: string, newData: any) {
+		activeEdgesStore.update((edges) =>
+			edges.map((e) => (e.id === edgeId ? { ...e, data: { ...e.data, ...newData } } : e))
+		);
+	}
+>>>>>>> Stashed changes
 </script>
 
 <main class="editor-root">
 	<section class="canvas-shell" bind:clientWidth bind:clientHeight>
+<<<<<<< Updated upstream
 		<SvelteFlow
 				bind:nodes
 				bind:edges
@@ -252,6 +383,67 @@
 		</SvelteFlow>
 		<Sidebar />
 		<Controls position="top-right" />
+=======
+	<SvelteFlow
+			bind:nodes={$activeNodesStore}
+			bind:edges={$activeEdgesStore}
+			{defaultEdgeOptions}
+			fitView
+			ondragover={onDragOver}
+			ondrop={onDrop}
+			onnodecontextmenu={handleContextMenu}
+			onpaneclick={handlePaneClick} 
+			{nodeTypes}
+			connectionMode={ConnectionMode.Loose}
+			onconnect={onConnect}
+			{edgeTypes}
+	>
+		<CrowsFootMarkers />
+		<Background variant={BackgroundVariant.Dots} />
+		{#if menu}
+			<ContextMenu
+				onclick={handlePaneClick}
+				id={menu.id}
+				top={menu.top}
+				left={menu.left}
+				right={menu.right}
+				bottom={menu.bottom}
+			/>
+		{/if}
+		<MiniMap />
+
+	</SvelteFlow>
+	<Sidebar />
+
+	{#if selectedEntityNode}
+        {@const activeNode = selectedEntityNode}
+        <RightSidebar 
+            node={activeNode} 
+            onUpdate={(updatedData: any) => updateNodeData(activeNode.id, updatedData)} 
+        />
+    {/if}
+
+	{#if selectedEdge}
+		{@const activeEdge = selectedEdge}
+		{@const edgeData = activeEdge.data as { relationship: string } | undefined}
+		<div class="edge-editor">
+			<span class="context-label">RELATIONSHIP</span>
+			<select
+				value={edgeData?.relationship ?? 'one-to-many'}
+				onchange={(e) => updateEdgeData(activeEdge.id, {
+					relationship: e.currentTarget.value
+				})}
+			>
+				<option value="one-to-one">One to One</option>
+				<option value="one-to-many">One to Many</option>
+				<option value="many-to-many">Many to Many</option>
+			</select>
+		</div>
+	{/if}
+
+	<Controls position="top-right" />
+
+>>>>>>> Stashed changes
 	</section>
 	<EditorFooter onSwitchPage={handleSwitchPage} onCreatePage={handleCreatePage} />
 </main>

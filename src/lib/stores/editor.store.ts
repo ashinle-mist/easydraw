@@ -436,21 +436,25 @@ export function deletePage(pageId: string) {
 
 // Read-only store for the currently active page object.
 // If activePageId is stale, it falls back to the first page and repairs the id in editorStore.
-export const activePageStore = derived(editorStore, ($editorState, set) => {
-	const activePage = $editorState.pages.find((page) => page.id === $editorState.activePageId);
-	if (activePage) {
-		set(activePage);
-		return;
-	}
+export const activePageStore = derived(
+	editorStore,
+	($editorState, set: (value: EditorPage | null) => void) => {
+		const activePage = $editorState.pages.find((page) => page.id === $editorState.activePageId);
+		if (activePage) {
+			set(activePage);
+			return;
+		}
 
-	const fallbackPage = $editorState.pages[0] ?? null;
-	set(fallbackPage);
+		const fallbackPage = $editorState.pages[0] ?? null;
+		set(fallbackPage);
 
-	// Keep source state consistent with the fallback page.
-	if (fallbackPage && $editorState.activePageId !== fallbackPage.id) {
-		editorStore.update((state) => ({
-			...state,
-			activePageId: fallbackPage.id
-		}));
-	}
-});
+		// Keep source state consistent with the fallback page.
+		if (fallbackPage && $editorState.activePageId !== fallbackPage.id) {
+			editorStore.update((state) => ({
+				...state,
+				activePageId: fallbackPage.id
+			}));
+		}
+	},
+	null
+);
