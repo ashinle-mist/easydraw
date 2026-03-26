@@ -119,6 +119,7 @@
  *   - Deletes target page when more than one page exists
  *   - Re-points activePageId if active page is deleted
  *   - Clears canvas-dirty marker for deleted page id
+ *   - Immediately removes the deleted page from localStorage snapshot
  *
  * Canvas dirty marker functions:
  * - markCanvasDirtyPage(pageId: string): void
@@ -274,6 +275,46 @@ export function clearAllCanvasDirtyPages() {
 	canvasDirtyPageIdsStore.set([]);
 }
 
+// Removes a deleted page from localStorage snapshot so deleted tabs do not reappear after reload.
+function removePageFromStorage(pageId: string) {
+	if (!browser) return false;
+
+	const rawState = localStorage.getItem(STORAGE_KEY);
+	if (!rawState) return false;
+
+	try {
+		const parsedState = JSON.parse(rawState) as unknown;
+		if (!isEditorState(parsedState)) return false;
+
+		const nextPages = parsedState.pages.filter((page) => page.id !== pageId);
+		if (nextPages.length === parsedState.pages.length) return false;
+
+		if (nextPages.length === 0) {
+			localStorage.removeItem(STORAGE_KEY);
+			savedPageSignaturesStore.set({});
+			return true;
+		}
+
+		const nextActivePageId = nextPages.some((page) => page.id === parsedState.activePageId)
+			? parsedState.activePageId
+			: nextPages[0].id;
+
+		const nextState: EditorState = {
+			pages: nextPages,
+			activePageId: nextActivePageId
+		};
+
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+		savedPageSignaturesStore.update((currentSignatures) => {
+			const { [pageId]: _, ...rest } = currentSignatures;
+			return rest;
+		});
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 // Saves only the currently active page into localStorage.
 export function saveActivePageToStorage() {
 	if (!browser) return false;
@@ -416,6 +457,8 @@ export function renamePage(pageId: string, nextName: string) {
 
 // Deletes a page by id while keeping at least one page alive.
 export function deletePage(pageId: string) {
+	let didDelete = false;
+
 	editorStore.update((state) => {
 		const pageExists = state.pages.some((page) => page.id === pageId);
 		if (!pageExists) return state;
@@ -424,6 +467,7 @@ export function deletePage(pageId: string) {
 		const nextPages = state.pages.filter((page) => page.id !== pageId);
 		const nextActivePageId =
 			state.activePageId === pageId ? nextPages[0]?.id ?? state.activePageId : state.activePageId;
+		didDelete = true;
 
 		return {
 			...state,
@@ -431,7 +475,11 @@ export function deletePage(pageId: string) {
 			activePageId: nextActivePageId
 		};
 	});
+
+	if (!didDelete) return;
+
 	clearCanvasDirtyPage(pageId);
+	removePageFromStorage(pageId);
 }
 
 // Read-only store for the currently active page object.
