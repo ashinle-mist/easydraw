@@ -30,7 +30,6 @@
 	import {
 		activePageStore,
 		createPage,
-		editorStore,
 		loadEditorStateFromStorage,
 		saveActivePageToStorage,
 		switchPage,
@@ -155,7 +154,6 @@
 	};
 
 	const onDrop = (event: DragEvent) => {
-		console.log('drop fired', type.current);
 		event.preventDefault();
 
 		if (!type.current) {

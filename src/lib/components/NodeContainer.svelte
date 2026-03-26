@@ -88,4 +88,16 @@
         border-radius: 5px;
         cursor: grab;
     }
+
+	.table-node {
+		width: 60px;
+		height: 50px;
+		margin: 0.5rem;
+		border: 1px solid #111;
+		border-radius: 4px;
+		background: linear-gradient(to bottom, #d1d1d1 30%, white 30%);
+		cursor: grab;
+		display: flex;
+		flex-direction: column;
+	}
 </style>
